@@ -1,6 +1,7 @@
 const { createServer } = require('node:http');
 const { parse } = require('node:url');
 const { StringDecoder } = require('node:string_decoder');
+const { exec } = require('child_process');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -31,29 +32,50 @@ const server = createServer((req, res) => {
         // Once the data collection is finished
         req.on('end', () => {
             body += decoder.end();
-            // Here you can process the body as needed
-            console.log('Received POST data:', body);
+            console.log(req)
+            // Execute the shell script and capture its output
+            exec('sh test-script.sh ' + body, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error executing script: ${error.message}`);
+                    res.statusCode = 500;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
+                    res.end(JSON.stringify({ error: error.message }));
+                    return;
+                }
 
-            // Set the response header and status code
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
+                if (stderr) {
+                    console.error(`Script stderr: ${stderr}`);
+                    res.statusCode = 500;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
+                    res.end(JSON.stringify({ error: stderr }));
+                    return;
+                }
 
-            // Respond with a success message and echo the received data
-            res.end(JSON.stringify({
-                message: 'Registration successful',
-                data: body
-            }));
+                console.log(`Script output: ${stdout}`);
+
+                // Set the response header and status code
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
+
+                // Respond with the script output
+                res.end(JSON.stringify({
+                    message: 'Script executed successfully',
+                    output: stdout
+                }));
+            });
         });
     } else {
         // Handle other routes or methods
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/plain');
         res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
-        res.end('You Appear to be lost');
+        res.end('You appear to be lost');
     }
 });
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+server.listen(3000, () => {
+    console.log('Server listening on port 3000');
 });
