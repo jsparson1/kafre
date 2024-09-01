@@ -1,21 +1,56 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useCallback } from 'react';
 import './App.css'
-const FileUpload: React.FC = () => {
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-    const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files.length > 0) {
-            setSelectedFile(event.target.files[0]);
+const FileUpload: React.FC = () => {
+    //todo remove nulls add better logging
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File | null>(null);
+    const [hashResult, setHashResult] = useState<string>("No File Registered");
+    const [error, setError] = useState<string | null>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            hashFile(selectedFile);
         }
     };
 
+    const hashFile = useCallback(async (file: File,) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const arrayBuffer = e.target?.result as ArrayBuffer;
+                console.log(arrayBuffer)
+                const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+                console.log(hashBuffer)
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                setHashResult(hashHex);
+
+                console.log(hashResult)
+
+                setError(null);
+            } catch (err) {
+                console.log('Error hashing file: ' + (err instanceof Error ? err.message : String(err)));
+
+                setHashResult("ERROR");
+            }
+        };
+        reader.onerror = () => {
+            setError('Error reading file');
+            setHashResult("");
+        };
+        reader.readAsArrayBuffer(file);
+    }, []);
+
     const handleUpload = () => {
 
-        console.log("aaa")
-        // Replace with your upload URL
+        // replace with test url
         fetch('http://127.0.0.1:3000/register', {
             method: 'POST',
-            body: "aaa",
+            body: hashResult,
         })
             .then((response) => response.json())
             .then((data) => {
