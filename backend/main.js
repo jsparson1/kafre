@@ -67,7 +67,36 @@ const server = createServer((req, res) => {
                 }));
             });
         });
-    } else {
+    } else if (parsedUrl.pathname === '/verify') {
+
+        let body = '';
+        const decoder = new StringDecoder('utf-8');
+        // Listen for data chunks
+        req.on('data', chunk => {
+            body += decoder.write(chunk);
+        });
+
+        // When the request ends, check the body
+        req.on('end', () => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
+            //sample output hash implement with DB
+            console.log(body)
+            if (body == "dc76fcc3c1f6b10c8954522188596bc33697590beb81f88733e6235dea1124db") {
+                res.end(JSON.stringify({
+                    message: 'File Exists',
+                    output: "File Exists at time 10000"
+                }));
+            } else {
+                res.end(JSON.stringify({
+                    message: 'File Does Not Exist',
+                    output: "File Does Not Exist"
+                }));
+            }
+        });
+    }
+    else {
         // Handle other routes or methods
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/plain');
