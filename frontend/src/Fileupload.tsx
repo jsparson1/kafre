@@ -6,10 +6,12 @@ const FileUpload: React.FC = () => {
     const [verificationfile, setVerificationFile] = useState<File | null>(null);
     const [verificationHashResult, setVerificationHashResult] = useState<string>("No File Registered");
     const [error, setError] = useState<string | null>(null);
+    const [isVerified, setIsVerified] = useState<string | null>(null);
 
     const handleVerificationFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
+            setIsVerified(null);
             setVerificationFile(selectedFile);
             hashVerificationFile(selectedFile);
         }
@@ -112,17 +114,21 @@ const FileUpload: React.FC = () => {
 
         fetch('http://127.0.0.1:3000/verify', {
             method: 'POST',
-            body: verificationHashResult,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: registrationHash,
         })
             .then((response) => response.json())
             .then((data) => {
                 console.log(data);
+                setIsVerified(data.output);
+                console.log(isVerified)
             })
             .catch((error) => {
-
                 console.error('Error:', error);
+                setIsVerified(null);
             });
-
     };
 
     return (
@@ -135,6 +141,7 @@ const FileUpload: React.FC = () => {
                         <button onClick={handleVerify} disabled={false}>
                             Check
                         </button>
+                        {isVerified && <p>{isVerified}</p>}
                     </div>
                 </div>
             </div >
