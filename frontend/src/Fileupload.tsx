@@ -7,6 +7,7 @@ const FileUpload: React.FC = () => {
     const [verificationHashResult, setVerificationHashResult] = useState<string>("No File Registered");
     const [error, setError] = useState<string | null>(null);
     const [isVerified, setIsVerified] = useState<string | null>(null);
+    const [isRegistered, setIsRegistered] = useState<string | null>(null);
 
     const handleVerificationFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -23,6 +24,7 @@ const FileUpload: React.FC = () => {
     const handleRegistrationFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedRegistrationFile = e.target.files?.[0];
         if (selectedRegistrationFile) {
+            setIsRegistered(null);
             setRegistrationFile(selectedRegistrationFile);
             hashRegistrationFile(selectedRegistrationFile);
         }
@@ -103,9 +105,11 @@ const FileUpload: React.FC = () => {
             .then((response) => response.json())
             .then((data) => {
                 console.log(data);
+                setIsRegistered("Your File Successfully Timestamped!")
             })
             .catch((error) => {
                 console.error('Error:', error);
+                setIsRegistered("There Was A Problem Timestamping Your File")
             });
 
     };
@@ -154,6 +158,7 @@ const FileUpload: React.FC = () => {
                         <button onClick={handleRegistration} disabled={false}>
                             Register
                         </button>
+                        {isRegistered && <p>{isRegistered}</p>}
                     </div>
                 </div>
             </div >
