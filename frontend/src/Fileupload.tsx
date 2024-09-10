@@ -121,7 +121,7 @@ const FileUpload: React.FC = () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: registrationHash,
+            body: verificationHashResult,
         })
             .then((response) => response.json())
             .then((data) => {
