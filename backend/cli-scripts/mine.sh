@@ -1,0 +1,1 @@
+while true; do ./litecoin-cli.sh generatetoaddress 1 tltc1q2fuezjy7cj0axr7rjtytfv7ykfyz5frqp778nk; done
